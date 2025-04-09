@@ -1,0 +1,41 @@
+#app1 & app2: These are your Node.js apps. Each app will be built from its respective Dockerfile located in ./app1 and ./app2.
+#
+#haproxy: Uses the haproxy:alpine image. The config (haproxy.cfg) is mounted into the container. HAProxy listens on port 8089 and load balances traffic between app1 and app2.
+#
+#nginx: Uses the nginx:alpine image. The Nginx config (default.conf) is mounted into the container. Nginx listens on port 80 and forwards requests to HAProxy on port 8089.
+#
+
+version: '3'
+
+services:
+  app1:
+    build:
+      context: ./app1
+    container_name: app1
+
+  app2:
+    build:
+      context: ./app2
+    container_name: app2
+
+  haproxy:
+    image: haproxy:alpine
+    container_name: haproxy
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      - app1
+      - app2
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - haproxy
+
+
+
